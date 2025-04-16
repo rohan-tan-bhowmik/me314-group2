@@ -1,0 +1,41 @@
+# === ROS 2 build artifacts ===
+build/
+install/
+log/
+
+# === Python artifacts ===
+*.pyc
+*.pyo
+__pycache__/
+*.egg-info/
+.eggs/
+dist/
+
+# === CMake/Colcon ===
+CMakeFiles/
+cmake_install.cmake
+Makefile
+ament_cmake_environment_hooks/
+
+# === VSCode / IDEs ===
+.vscode/
+.idea/
+*.swp
+*~
+
+# === ROS 2 setup/overlay junk ===
+local_setup.*
+setup.*
+_env.sh
+COLCON_IGNORE
+
+# === Misc ===
+*.log
+.DS_Store
+.env
+*.launch.py~
+
+# === ROS 2 package-specific ===
+*.rqt.pyc
+.mypy_cache/
+pytest_cache/
