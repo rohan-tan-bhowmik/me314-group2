@@ -20,6 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'pick_and_place_node = pick_and_place.main:main',
         ],
     },
 )
