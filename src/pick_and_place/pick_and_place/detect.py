@@ -10,6 +10,7 @@ from tf2_ros import TransformException
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Float32MultiArray
+from geometry_msgs.msg import Point
 import time
 from rclpy.duration import Duration
 #from builtin_interfaces.msg import Time
@@ -25,8 +26,9 @@ class PixelToCoordNode(Node):
         # Topics for camera data
         self.CameraIntrinsicsTopic = "/color/camera_info"
         self.DepthCameraIntrinsicsTopic = "/aligned_depth_to_color/camera_info"
-        self.CameraTopic = "/gazebo/default/UF_ROBOT/link7/cameracolor/image"
+        self.CameraTopic = "/color/image_raw"
         self.DepthCameraTopic = "/gazebo/default/UF_ROBOT/link7/cameradepth/image"
+        self.RedObjectCenter = "/image_with_box"
 
         # CV Bridge Initialization
         self.bridge = CvBridge()
@@ -40,6 +42,7 @@ class PixelToCoordNode(Node):
         self.create_subscription(CameraInfo, self.DepthCameraIntrinsicsTopic, self.GetDepthCameraIntrinsics, 1)
         self.create_subscription(Image, self.CameraTopic, self.GetCV2Image, 10)
         self.create_subscription(Image, self.DepthCameraTopic, self.GetDepthCV2Image, 10)
+        self.create_subscription(Point, self.RedObjectCenter, self.getPointInBaseFrame, 10)
 
         # Variables for camera data and transforms
         self.cv_Image = None
@@ -131,7 +134,9 @@ class PixelToCoordNode(Node):
         except Exception as e:
             self.get_logger().error(f"Failed to convert depth image: {e}")
 
-    def getPointInBaseFrame(self, pixel_x, pixel_y):
+    def getPointInBaseFrame(self, point):
+        pixel_x = point.x
+        pixel_y = point.y
         self.baseTransform = self.GetTransform(self.target_frame, self.source_frame)
         if not (self.cv_DepthImage is not None and 
                 all(v is not None for v in [self.alpha_depth, self.beta_depth, 
@@ -152,9 +157,9 @@ class PixelToCoordNode(Node):
         
         #publish xyz coords
         msg = Float32MultiArray()
-        msg.data = point_base_frame[:3]
+        msg.data = point_base_frame[:3].tolist()
         self.publisher_.publish(msg)
-
+        self.get_logger().error("Published Coords")
         return msg  # Return only the x, y, z coordinates
 
 def main():
