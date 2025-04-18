@@ -27,7 +27,7 @@ class PixelToCoordNode(Node):
         self.CameraIntrinsicsTopic = "/color/camera_info"
         self.DepthCameraIntrinsicsTopic = "/aligned_depth_to_color/camera_info"
         self.CameraTopic = "/color/image_raw"
-        self.DepthCameraTopic = "/gazebo/default/UF_ROBOT/link7/cameradepth/image"
+        self.DepthCameraTopic = "/aligned_depth_to_color/image_raw"
         self.RedObjectCenter = "/image_with_box"
 
         # CV Bridge Initialization
@@ -60,7 +60,7 @@ class PixelToCoordNode(Node):
         self.timer = self.create_timer(1.0, self.lookup_base_transform)
 
         #publish object locaftion
-        self.publisher_ = self.create_publisher(Float32MultiArray, 'object_position', 10)
+        self.publisher_ = self.create_publisher(Point, 'object_position', 10)
 
     def GetTransform(self, target_frame, source_frame, timeout=30.0, debug=False):
         if debug:
@@ -112,6 +112,7 @@ class PixelToCoordNode(Node):
         self.beta = CameraMsg.k[4]
         self.u0 = CameraMsg.k[2]
         self.v0 = CameraMsg.k[5]
+        self.get_logger().info("Successfully got camera intrinsics.")
 
     def GetDepthCameraIntrinsics(self, DepthCameraMsg):
         # Extract depth camera intrinsics from CameraInfo message
@@ -119,11 +120,13 @@ class PixelToCoordNode(Node):
         self.beta_depth = DepthCameraMsg.k[4]
         self.u0_depth = DepthCameraMsg.k[2]
         self.v0_depth = DepthCameraMsg.k[5]
+        self.get_logger().info("Successfully got depth camera intrinsics")
 
     def GetCV2Image(self, ImageMsg):
         # Convert ROS Image message to OpenCV format for RGB image
         try:
             self.cv_Image = self.bridge.imgmsg_to_cv2(ImageMsg, desired_encoding="passthrough")
+            self.get_logger().info("Succefully got CV2 Image.")
         except Exception as e:
             self.get_logger().error(f"Failed to convert RGB image: {e}")
 
@@ -131,6 +134,7 @@ class PixelToCoordNode(Node):
         # Convert ROS Image message to OpenCV format for depth image
         try:
             self.cv_DepthImage = self.bridge.imgmsg_to_cv2(DepthImageMsg, desired_encoding="passthrough")
+            self.get_logger().info("Successfully got depth CV2 image.")
         except Exception as e:
             self.get_logger().error(f"Failed to convert depth image: {e}")
 
@@ -141,7 +145,9 @@ class PixelToCoordNode(Node):
         if not (self.cv_DepthImage is not None and 
                 all(v is not None for v in [self.alpha_depth, self.beta_depth, 
                                             self.u0_depth, self.v0_depth])):
-            raise ValueError("Missing depth image or intrinsics")
+            #raise ValueError("Missing depth image or intrinsics")
+            self.get_logger().warn("Skipping getPointInBaseFrame — data not ready yet.")
+            return
 
         # Compute camera coordinates from pixel coordinates and depth image
         Z_c = float(self.cv_DepthImage[int(pixel_y), int(pixel_x)]) / 1000.0  # Convert mm to meters
@@ -156,11 +162,13 @@ class PixelToCoordNode(Node):
         point_base_frame = np.dot(self.baseTransform, point_camera_frame_homogeneous)
         
         #publish xyz coords
-        msg = Float32MultiArray()
-        msg.data = point_base_frame[:3].tolist()
-        self.publisher_.publish(msg)
-        self.get_logger().error("Published Coords")
-        return msg  # Return only the x, y, z coordinates
+        coord = Point()
+        coord.x = point_base_frame[:3][0]
+        coord.y = point_base_frame[:3][1]
+        coord.z = point_base_frame[:3][2]
+        self.publisher_.publish(coord)
+        self.get_logger().info("Published Coords")
+        return coord  # Return only the x, y, z coordinates
 
 def main():
     rclpy.init()
