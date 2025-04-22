@@ -13,6 +13,8 @@ from std_msgs.msg import Float32MultiArray
 from geometry_msgs.msg import Point
 import time
 from rclpy.duration import Duration
+
+import matplotlib.pyplot as plt
 #from builtin_interfaces.msg import Time
 
 class PixelToCoordNode(Node):
@@ -127,6 +129,13 @@ class PixelToCoordNode(Node):
         try:
             self.cv_Image = self.bridge.imgmsg_to_cv2(ImageMsg, desired_encoding="passthrough")
             self.get_logger().info("Succefully got CV2 Image.")
+
+            plt.imshow(self.cv_Image)
+            plt.title("Color Camera View")
+            plt.axis("off")
+            plt.pause(0.001)  # Small pause to update the frame
+            plt.clf()
+            
         except Exception as e:
             self.get_logger().error(f"Failed to convert RGB image: {e}")
 
