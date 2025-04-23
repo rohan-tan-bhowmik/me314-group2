@@ -25,11 +25,12 @@ class moveToPoint(Node):
         self.current_gripper_position = None
         self.gripper_status_sub = self.create_subscription(Float64, '/me314_xarm_gripper_position', self.gripper_position_callback, 10)
         
-        self.move_sub = self.create_subscription(Point, '/cube_position', self.cube_pos_callback, 10)
+        # self.move_sub = self.create_subscription(Point, '/cube_position', self.cube_pos_callback, 10)
 
     def arm_pose_callback(self, msg: Pose):
         self.current_arm_pose = msg
 
+    # DEPRECATED DEBUG ONLY!!!
     def cube_pos_callback(self, point: Point):
         # point.x = 0.2
         # point.y = -0.2
@@ -48,37 +49,6 @@ class moveToPoint(Node):
 
     def gripper_position_callback(self, msg: Float64):
         self.current_gripper_position = msg.data
-
-    def publish_pose(self, point):
-        """
-        Publishes a pose command to the command queue using an array format.
-        pose_array format: [x, y, z, qx, qy, qz, qw]
-        """
-        # Create a CommandQueue message containing a single pose command
-        queue_msg = CommandQueue()
-        queue_msg.header.stamp = self.get_clock().now().to_msg()
-        
-        # Create a CommandWrapper for the pose command
-        wrapper = CommandWrapper()
-        wrapper.command_type = "pose"
-        
-        # Populate the pose_command with the values from the pose_array
-        wrapper.pose_command.x = point.x
-        wrapper.pose_command.y = point.y
-        wrapper.pose_command.z = point.z
-        wrapper.pose_command.qx = 1.0
-        wrapper.pose_command.qy = 0.0
-        wrapper.pose_command.qz = 0.0
-        wrapper.pose_command.qw = 0.0
-        
-        # Add the command to the queue and publish
-        queue_msg.commands.append(wrapper)
-        self.command_queue_pub.publish(queue_msg)
-        
-        self.get_logger().info(f"Published Pose to command queue:\n"
-                               f"  position=({wrapper.pose_command.x}, {wrapper.pose_command.y}, {wrapper.pose_command.z})\n"
-                               f"  orientation=({wrapper.pose_command.qx}, {wrapper.pose_command.qy}, "
-                               f"{wrapper.pose_command.qz}, {wrapper.pose_command.qw})")
 
     def publish_gripper_position(self, gripper_pos: float):
         """
