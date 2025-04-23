@@ -13,4 +13,9 @@ def generate_launch_description():
             executable='move_to_point',
             name='move_to_point'
         ),
+        Node(
+            package='pick_and_place',
+            executable='image_to_pixel',
+            name='image_to_pixel'
+        ),
     ])

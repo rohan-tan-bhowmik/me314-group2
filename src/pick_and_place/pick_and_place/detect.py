@@ -23,7 +23,7 @@ class PixelToCoordNode(Node):
 
         #Frames
         self.target_frame = 'link_base'
-        self.source_frame = 'camera_link'
+        self.source_frame = 'camera_color_optical_frame'
         
         # Topics for camera data
         self.CameraIntrinsicsTopic = "/color/camera_info"
@@ -62,7 +62,7 @@ class PixelToCoordNode(Node):
         self.timer = self.create_timer(1.0, self.lookup_base_transform)
 
         #publish object locaftion
-        self.publisher_ = self.create_publisher(Point, 'object_position', 10)
+        self.publisher_ = self.create_publisher(Point, 'cube_position', 10)
 
     def GetTransform(self, target_frame, source_frame, timeout=30.0, debug=False):
         if debug:
@@ -135,7 +135,18 @@ class PixelToCoordNode(Node):
             plt.axis("off")
             plt.pause(0.001)  # Small pause to update the frame
             plt.clf()
+
+            # hsv = cv2.cvtColor(self.cv_Image, cv2.COLOR_BGR2HSV)
             
+            # lower_red1 = (0, 100, 100)
+            # upper_red1 = (10, 255, 255)
+
+            # lower_red2 = (160, 100, 100)
+            # upper_red2 = (180, 255, 255)
+
+            # red_mask = cv2.inRange(hsv, lower_red1, upper_red1) | cv2.inRange(hsv, lower_red2, upper_red2)
+
+
         except Exception as e:
             self.get_logger().error(f"Failed to convert RGB image: {e}")
 
