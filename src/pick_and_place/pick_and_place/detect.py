@@ -130,11 +130,7 @@ class PixelToCoordNode(Node):
             self.cv_Image = self.bridge.imgmsg_to_cv2(ImageMsg, desired_encoding="passthrough")
             self.get_logger().info("Succefully got CV2 Image.")
 
-            plt.imshow(self.cv_Image)
-            plt.title("Color Camera View")
-            plt.axis("off")
-            plt.pause(0.001)  # Small pause to update the frame
-            plt.clf()
+
 
             # hsv = cv2.cvtColor(self.cv_Image, cv2.COLOR_BGR2HSV)
             

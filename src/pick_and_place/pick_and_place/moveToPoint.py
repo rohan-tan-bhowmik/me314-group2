@@ -31,14 +31,18 @@ class moveToPoint(Node):
         self.current_arm_pose = msg
 
     def cube_pos_callback(self, point: Point):
-        point.x = 0.5
-        point.y = 0.3
-        point.z = 0.02
+        # point.x = 0.2
+        # point.y = -0.2
+        # point.z = 0.02
+        
         # point.x = 0.16
         # point.y = 0.0
         # point.z = 0.5
-        if self.moved > 10: return
+        if self.moved > 1: return
+        # point.y *= -?1.0
+        point.z = -point.z if point.z < 0 else point.z 
         self.get_logger().info(f"Cube detected at: ({point.x:.3f}, {point.y:.3f}, {point.z:.3f})")
+        # return
         self.publish_pose(point)
         self.moved +=1 
 

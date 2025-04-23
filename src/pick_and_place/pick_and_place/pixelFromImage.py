@@ -14,6 +14,8 @@ import time
 from rclpy.duration import Duration
 import cv2
 
+import matplotlib.pyplot as plt
+
 class ImageToPixel(Node):
     def __init__(self):
         super().__init__("image_to_pixel")
@@ -48,10 +50,17 @@ class ImageToPixel(Node):
                 x, y, w, h = cv2.boundingRect(red_area)
                 cv2.rectangle(cv_image,(x, y),(x+w, y+h),(0, 0, 255), 2)
                 pixel = Point()
-                pixel.x = float((x + w)/2)
-                pixel.y = float((y + h)/2)
+                pixel.x = float(x + w / 2.0)
+                pixel.y = float(y + h / 2.0)
             #boxed_image_msg = self.bridge.cv2_to_imgmsg(msg, encoding='bgr8')
                 self.pixel_pub.publish(pixel)
+
+                plt.imshow(cv_image)
+                plt.plot(pixel.x, pixel.y, marker='o', color='yellow', markersize=2)
+                plt.title("Color Camera View")
+                plt.axis("off")
+                plt.pause(0.001)  # Small pause to update the frame
+                plt.clf()
             
         except Exception as e:
             self.get_logger().error(f'Failed to convert image: {e}')
