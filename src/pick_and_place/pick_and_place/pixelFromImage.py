@@ -37,16 +37,14 @@ class ImageToPixel(Node):
             upper_red = np.array([10, 255, 255])
             lower_red2 = np.array([160, 100, 100])
             upper_red2 = np.array([179, 255, 255])
-            lower_green = np.array([100, 0, 100])
-            upper_green = np.array([255, 10, 255])
-            lower_green2 = np.array([100, 160, 100])
-            upper_green2 = np.array([255, 179, 255])
+            lower_green = np.array([36, 100, 100])
+            upper_green = np.array([86, 255, 255])
             mask_red = cv2.inRange (image_hsv, lower_red, upper_red) | cv2.inRange(image_hsv, lower_red2, upper_red2)
-            mask_green = cv2.inRange (image_hsv, lower_green, upper_green) | cv2.inRange(image_hsv, lower_green2, upper_green2)
+            mask_green = cv2.inRange (image_hsv, lower_green, upper_green)
             #mask1 = cv2.inRange(hsv_img, lower_red, upper_red)
             #mask2 = cv2.inRange(hsv_img, lower_red2, upper_red2)
             #mask = cv2.bitwise_or(mask1, mask2)
-            masked_img = cv2.bitwise_and(cv_image, cv_image, mask=mask)
+            #masked_img = cv2.bitwise_and(cv_image, cv_image, mask=mask)
             contours_red, _ = cv2.findContours(mask_red,
                               cv2.RETR_TREE,
                               cv2.CHAIN_APPROX_SIMPLE)
@@ -54,6 +52,10 @@ class ImageToPixel(Node):
                                 cv2.RETR_TREE,
                                 cv2.CHAIN_APPROX_SIMPLE)
             
+            #self.get_logger().info("Red & Green contour lengths: " + str(len(contours_red)) + " " + str(len(contours_green)))
+
+            plt.imshow(cv_image)
+
             if len(contours_red) > 0:
                 red_area = max(contours_red, key=cv2.contourArea)
                 x, y, w, h = cv2.boundingRect(red_area)
@@ -63,29 +65,24 @@ class ImageToPixel(Node):
                 pixel.y = float(y + h / 2.0)
                 self.pixel_red_pub.publish(pixel)
 
-                plt.imshow(cv_image)
                 plt.plot(pixel.x, pixel.y, marker='o', color='yellow', markersize=2)
-                plt.title("Color Camera View")
-                plt.axis("off")
-                plt.pause(0.001)  # Small pause to update the frame
-                plt.clf()
             
             if len(contours_green) > 0:
                 green_area = max(contours_green, key=cv2.contourArea)
                 x, y, w, h = cv2.boundingRect(green_area)
-                cv2.rectangle(cv_image,(x, y),(x+w, y+h),(0, 0, 255), 2)
+                cv2.rectangle(cv_image,(x, y),(x+w, y+h),(0, 255, 255), 2)
                 pixel = Point()
                 pixel.x = float(x + w / 2.0)
                 pixel.y = float(y + h / 2.0)
 
                 self.pixel_green_pub.publish(pixel)
 
-                plt.imshow(cv_image)
                 plt.plot(pixel.x, pixel.y, marker='o', color='magenta', markersize=2)
-                plt.title("Color Camera View")
-                plt.axis("off")
-                plt.pause(0.001)  # Small pause to update the frame
-                plt.clf()
+            
+            plt.title("Color Camera View")
+            plt.axis("off")
+            plt.pause(0.001)  # Small pause to update the frame
+            plt.clf()
 
         except Exception as e:
             self.get_logger().error(f'Failed to convert image: {e}')

@@ -31,7 +31,7 @@ class PixelToCoordNode(Node):
         self.CameraTopic = "/color/image_raw"
         self.DepthCameraTopic = "/aligned_depth_to_color/image_raw"
         self.RedObjectCenter = "/image_red_center"
-        self.RedObjectCenter = "/image_green_center"
+        self.GreenObjectCenter = "/image_green_center"
 
         # CV Bridge Initialization
         self.bridge = CvBridge()
@@ -45,7 +45,8 @@ class PixelToCoordNode(Node):
         self.create_subscription(CameraInfo, self.DepthCameraIntrinsicsTopic, self.GetDepthCameraIntrinsics, 1)
         self.create_subscription(Image, self.CameraTopic, self.GetCV2Image, 10)
         self.create_subscription(Image, self.DepthCameraTopic, self.GetDepthCV2Image, 10)
-        self.create_subscription(Point, self.RedObjectCenter, self.getPointInBaseFrame, 10)
+        self.create_subscription(Point, self.RedObjectCenter, lambda msg: self.getPointInBaseFrame(msg, "red"), 10)
+        self.create_subscription(Point, self.GreenObjectCenter, lambda msg: self.getPointInBaseFrame(msg, "green"), 10)
 
         # Variables for camera data and transforms
         self.cv_Image = None
@@ -62,8 +63,9 @@ class PixelToCoordNode(Node):
         #use timer to find base transform after init occurs
         self.timer = self.create_timer(1.0, self.lookup_base_transform)
 
-        #publish object locaftion
-        self.publisher_ = self.create_publisher(Point, 'cube_position', 10)
+        #publish object & goal locaftions
+        self.publisher_cube = self.create_publisher(Point, 'cube_position', 10)
+        self.publisher_goal = self.create_publisher(Point, 'goal_position', 10)
 
     def GetTransform(self, target_frame, source_frame, timeout=30.0, debug=False):
         if debug:
@@ -155,7 +157,7 @@ class PixelToCoordNode(Node):
         except Exception as e:
             self.get_logger().error(f"Failed to convert depth image: {e}")
 
-    def getPointInBaseFrame(self, point):
+    def getPointInBaseFrame(self, point, objectType):
         pixel_x = point.x
         pixel_y = point.y
         self.baseTransform = self.GetTransform(self.target_frame, self.source_frame)
@@ -183,7 +185,13 @@ class PixelToCoordNode(Node):
         coord.x = point_base_frame[:3][0]
         coord.y = point_base_frame[:3][1]
         coord.z = point_base_frame[:3][2]
-        self.publisher_.publish(coord)
+        if (objectType == "red"):
+            self.publisher_cube.publish(coord)
+        elif (objectType == "green"):
+            self.publisher_goal.publish(coord)
+        else:
+            self.get_logger().info("Invalid object type passed to getPointInBaseFrame")
+        
         self.get_logger().info("Published Coords")
         return coord  # Return only the x, y, z coordinates
 
