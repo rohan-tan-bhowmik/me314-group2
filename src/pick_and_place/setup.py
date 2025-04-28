@@ -22,10 +22,11 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'pick_and_place_node = pick_and_place.main:main',
+            # 'pick_and_place_node = pick_and_place.main:main',
             'detect = pick_and_place.detect:main',
             'image_to_pixel = pick_and_place.pixelFromImage:main',
-            'move_to_point = pick_and_place.moveToPoint:main'
+            'move_to_point = pick_and_place.moveToPoint:main',
+            'run = pick_and_place.run:main',
         ],
     },
 )
