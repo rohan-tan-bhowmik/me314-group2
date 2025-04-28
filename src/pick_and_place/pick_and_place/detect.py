@@ -30,7 +30,8 @@ class PixelToCoordNode(Node):
         self.DepthCameraIntrinsicsTopic = "/aligned_depth_to_color/camera_info"
         self.CameraTopic = "/color/image_raw"
         self.DepthCameraTopic = "/aligned_depth_to_color/image_raw"
-        self.RedObjectCenter = "/image_with_box"
+        self.RedObjectCenter = "/image_red_center"
+        self.RedObjectCenter = "/image_green_center"
 
         # CV Bridge Initialization
         self.bridge = CvBridge()

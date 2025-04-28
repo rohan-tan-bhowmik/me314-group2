@@ -26,8 +26,8 @@ class ImageToPixel(Node):
             self.findPixel,
             10
         )
-        self.pixel_red_pub = self.create_publisher(Point, '/image_with_box', 10)
-        self.pixel_green_pub = self.create_publisher(Point, '/image_with_box', 10)
+        self.pixel_red_pub = self.create_publisher(Point, '/image_red_center', 10)
+        self.pixel_green_pub = self.create_publisher(Point, '/image_green_center', 10)
 
     def findPixel(self, msg):
         try:
