@@ -16,7 +16,10 @@ class run(Node):
     def __init__(self):
         super().__init__('run')
 
+        self.current_arm_pose = None
+        self.current_gripper_position = None
         self.cube_position = None
+        self.goal_position = None
         self.stage = 0
 
         # Stage 0 = locate red + green
@@ -24,22 +27,71 @@ class run(Node):
         # Stage 2 = go to green + release
         # Stage 3 = done! return home
 
+        self.pose_status_sub = self.create_subscription(Pose, '/me314_xarm_current_pose', self.arm_pose_callback, 10)
+        self.gripper_status_sub = self.create_subscription(Float64, '/me314_xarm_gripper_position', self.gripper_position_callback, 10)
         self.cube_sub = self.create_subscription(Point, '/cube_position', self.cube_pos_callback, 10)
+        self.goal_sub = self.create_subscription(Point, '/goal_position', self.goal_pos_callback, 10)
 
         self.command_queue_pub = self.create_publisher(CommandQueue, '/me314_xarm_command_queue', 10)
-        # self.gripper_status_sub = self.create_subscription(Float64, '/me314_xarm_gripper_position', self.gripper_position_callback, 10)
 
         self.create_timer(3.0, self.stage_machine)
 
     def stage_machine(self):
+        self.get_logger().info("Stage: " + str(self.stage))
         if self.stage == 0:
+            
+            # TO DO: Go to home position
+
+            # lift arm until both cube and goal are visible
+            if self.cube_position == None or self.goal_position == None:
+                if self.current_arm_pose.position.z > 0.4:
+                    self.get_logger().info("Max height of arm reached - cube or goal not found")
+                    return
+                point = Point()
+                point.x = self.current_arm_pose.position.x
+                point.y = self.current_arm_pose.position.y
+                point.z = self.current_arm_pose.position.z + 0.03
+                self.publish_pose(point)
+                return
+            else:
+                self.get_logger().info("Both cube and goal found")
+                self.stage += 1
+
+        elif self.stage == 1:
             self.publish_pose(self.cube_position)
-            # time.sleep(3)
+            if np.linalg.norm(np.array([self.current_arm_pose.position.x, self.current_arm_pose.position.y, self.current_arm_pose.position.z]) - np.array([self.cube_position.x, self.cube_position.y, self.cube_position.z])) < 0.0001:
+                self.get_logger().info("In position to grab")
+                self.stage += 1
+
+        elif self.stage == 2:
+            # TO DO: Grab Cube
+            self.get_logger().info("Grabbing cube")
             self.stage += 1
 
-    
+        elif self.stage == 3:
+            self.publish_pose(self.goal_position)
+            if np.linalg.norm(np.array([self.current_arm_pose.position.x, self.current_arm_pose.position.y, self.current_arm_pose.position.z]) - np.array([self.goal_position.x, self.goal_position.y, self.goal_position.z])) < 0.0001:
+                self.get_logger().info("In position to release")
+                self.stage += 1
+
+        elif self.stage == 4:
+            # TO DO: Release Cube
+            self.get_logger().info("Releasing cube")
+            self.stage += 1
+
+        # time.sleep(3)
+
+    def arm_pose_callback(self, msg: Pose):
+        self.current_arm_pose = msg
+
     def cube_pos_callback(self, point: Point):
         self.cube_position = point
+
+    def goal_pos_callback(self, point: Point):
+        self.goal_position = point
+
+    def gripper_position_callback(self, msg: Float64):
+        self.current_gripper_position = msg.data
 
     def publish_pose(self, point):
         """
