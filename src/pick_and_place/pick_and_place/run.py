@@ -65,6 +65,7 @@ class run(Node):
 
         elif self.stage == 2:
             # TO DO: Grab Cube
+            self.publish_gripper_position(1.0)
             self.get_logger().info("Grabbing cube")
             self.stage += 1
 
@@ -76,6 +77,7 @@ class run(Node):
 
         elif self.stage == 4:
             # TO DO: Release Cube
+            self.publish_gripper_position(0.0)
             self.get_logger().info("Releasing cube")
             self.stage += 1
 
@@ -124,6 +126,27 @@ class run(Node):
                                f"  orientation=({wrapper.pose_command.qx}, {wrapper.pose_command.qy}, "
                                f"{wrapper.pose_command.qz}, {wrapper.pose_command.qw})")
 
+    def publish_gripper_position(self, gripper_pos: float):
+        """
+        Publishes a gripper command to the command queue.
+        For example:
+          0.0 is "fully open"
+          1.0 is "closed"
+        """
+        # Create a CommandQueue message containing a single gripper command
+        queue_msg = CommandQueue()
+        queue_msg.header.stamp = self.get_clock().now().to_msg()
+        
+        # Create a CommandWrapper for the gripper command
+        wrapper = CommandWrapper()
+        wrapper.command_type = "gripper"
+        wrapper.gripper_command.gripper_position = gripper_pos
+        
+        # Add the command to the queue and publish
+        queue_msg.commands.append(wrapper)
+        self.command_queue_pub.publish(queue_msg)
+        
+        self.get_logger().info(f"Published gripper command to queue: {gripper_pos:.2f}")
 
     # def point_reached():
     #     return
