@@ -7,6 +7,7 @@ find_package(geometry_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
 install(PROGRAMS
+  pick_and_place/detect.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
