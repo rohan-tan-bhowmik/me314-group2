@@ -6,6 +6,11 @@ find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
+install(PROGRAMS
+  pick_and_place/detect.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/PoseCommand.msg"
   "msg/GripperCommand.msg"
@@ -14,6 +19,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/CommandQueue.msg"
   DEPENDENCIES std_msgs geometry_msgs
 )
+
 
 ament_export_dependencies(rosidl_default_runtime)
 ament_package()
