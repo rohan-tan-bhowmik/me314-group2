@@ -21,6 +21,8 @@ class run(Node):
         self.cube_position = None
         self.goal_position = None
         self.stage = 0
+        self.cube_initialized = False
+        self.goal_initialized = False
 
         # Stage 0 = locate red + green
         # Stage 1 = grip red
@@ -58,22 +60,24 @@ class run(Node):
                 self.stage += 1
 
         elif self.stage == 1:
+            # self.cube_position.z = self.cube_position.z - 0.0233
+            self.cube_position.z = 0.02
             self.publish_pose(self.cube_position)
-            if np.linalg.norm(np.array([self.current_arm_pose.position.x, self.current_arm_pose.position.y, self.current_arm_pose.position.z]) - np.array([self.cube_position.x, self.cube_position.y, self.cube_position.z])) < 0.0001:
-                self.get_logger().info("In position to grab")
-                self.stage += 1
+            self.get_logger().info("In position to grab")
+            self.stage += 1
 
         elif self.stage == 2:
             # TO DO: Grab Cube
-            self.publish_gripper_position(1.0)
+            self.publish_gripper_position(0.75)
             self.get_logger().info("Grabbing cube")
             self.stage += 1
 
         elif self.stage == 3:
+            # self.goal_position.z = self.goal_position.z + 0.03
+            self.goal_position.z = 0.04
             self.publish_pose(self.goal_position)
-            if np.linalg.norm(np.array([self.current_arm_pose.position.x, self.current_arm_pose.position.y, self.current_arm_pose.position.z]) - np.array([self.goal_position.x, self.goal_position.y, self.goal_position.z])) < 0.0001:
-                self.get_logger().info("In position to release")
-                self.stage += 1
+            self.get_logger().info("In position to release")
+            self.stage += 1
 
         elif self.stage == 4:
             # TO DO: Release Cube
@@ -87,10 +91,19 @@ class run(Node):
         self.current_arm_pose = msg
 
     def cube_pos_callback(self, point: Point):
+        if (self.cube_initialized):
+            return
         self.cube_position = point
+        if (point != None):
+            self.cube_initialized = True
 
     def goal_pos_callback(self, point: Point):
+        if (self.goal_initialized):
+            return
         self.goal_position = point
+        if (point != None):
+            self.goal_initialized = True
+            
 
     def gripper_position_callback(self, msg: Float64):
         self.current_gripper_position = msg.data
