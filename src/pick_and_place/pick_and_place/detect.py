@@ -106,7 +106,7 @@ class PixelToCoordNode(Node):
         try:
             transform_matrix = self.GetTransform(self.target_frame, self.source_frame)
             self.baseTransform = transform_matrix
-            self.get_logger().info("Successfully got base transform.")
+            # self.get_logger().info("Successfully got base transform.")
             self.timer.cancel()  # Stop the timer once we succeed
         except RuntimeError as e:
             self.get_logger().warn(str(e))
@@ -117,7 +117,7 @@ class PixelToCoordNode(Node):
         self.beta = CameraMsg.k[4]
         self.u0 = CameraMsg.k[2]
         self.v0 = CameraMsg.k[5]
-        self.get_logger().info("Successfully got camera intrinsics.")
+        # self.get_logger().info("Successfully got camera intrinsics.")
 
     def GetDepthCameraIntrinsics(self, DepthCameraMsg):
         # Extract depth camera intrinsics from CameraInfo message
@@ -125,13 +125,13 @@ class PixelToCoordNode(Node):
         self.beta_depth = DepthCameraMsg.k[4]
         self.u0_depth = DepthCameraMsg.k[2]
         self.v0_depth = DepthCameraMsg.k[5]
-        self.get_logger().info("Successfully got depth camera intrinsics")
+        # self.get_logger().info("Successfully got depth camera intrinsics")
 
     def GetCV2Image(self, ImageMsg):
         # Convert ROS Image message to OpenCV format for RGB image
         try:
             self.cv_Image = self.bridge.imgmsg_to_cv2(ImageMsg, desired_encoding="passthrough")
-            self.get_logger().info("Succefully got CV2 Image.")
+            # self.get_logger().info("Succefully got CV2 Image.")
 
 
 
@@ -153,7 +153,7 @@ class PixelToCoordNode(Node):
         # Convert ROS Image message to OpenCV format for depth image
         try:
             self.cv_DepthImage = self.bridge.imgmsg_to_cv2(DepthImageMsg, desired_encoding="passthrough")
-            self.get_logger().info("Successfully got depth CV2 image.")
+            # self.get_logger().info("Successfully got depth CV2 image.")
         except Exception as e:
             self.get_logger().error(f"Failed to convert depth image: {e}")
 

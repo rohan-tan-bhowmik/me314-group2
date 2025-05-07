@@ -54,9 +54,12 @@ class ImageToPixel(Node):
             
             #self.get_logger().info("Red & Green contour lengths: " + str(len(contours_red)) + " " + str(len(contours_green)))
 
-            plt.imshow(cv_image)
+            # plt.imshow(cv_image)
 
+            # self.get_logger().info("AAAAAA")
             if len(contours_red) > 0:
+                # self.get_logger().info("BBBBBBB")
+
                 red_area = max(contours_red, key=cv2.contourArea)
                 x, y, w, h = cv2.boundingRect(red_area)
                 cv2.rectangle(cv_image,(x, y),(x+w, y+h),(0, 0, 255), 2)
@@ -65,9 +68,13 @@ class ImageToPixel(Node):
                 pixel.y = float(y + h / 2.0)
                 self.pixel_red_pub.publish(pixel)
 
-                plt.plot(pixel.x, pixel.y, marker='o', color='yellow', markersize=2)
-            
+                # self.get_logger().info("CCCCCCC")
+
+                # plt.plot(pixel.x, pixel.y, marker='o', color='yellow', markersize=2)
+                # self.get_logger().info("DDDDDDDD")
+
             if len(contours_green) > 0:
+                # self.get_logger().info("BBBBBBB other")
                 green_area = max(contours_green, key=cv2.contourArea)
                 x, y, w, h = cv2.boundingRect(green_area)
                 cv2.rectangle(cv_image,(x, y),(x+w, y+h),(0, 255, 255), 2)
@@ -76,13 +83,14 @@ class ImageToPixel(Node):
                 pixel.y = float(y + h / 2.0)
 
                 self.pixel_green_pub.publish(pixel)
+                # self.get_logger().info("CCCCCCC other")
 
-                plt.plot(pixel.x, pixel.y, marker='o', color='magenta', markersize=2)
+                # plt.plot(pixel.x, pixel.y, marker='o', color='magenta', markersize=2)
             
-            plt.title("Color Camera View")
-            plt.axis("off")
-            plt.pause(0.001)  # Small pause to update the frame
-            plt.clf()
+            # plt.title("Color Camera View")
+            # plt.axis("off")
+            # plt.pause(0.001)  # Small pause to update the frame
+            # plt.clf()
 
         except Exception as e:
             self.get_logger().error(f'Failed to convert image: {e}')
@@ -93,7 +101,7 @@ def main(args=None):
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()
-    cv2.destroyAllWindows()
+    # cv2.destroyAllWindows()
 
 if __name__ == '__main__':
     main()

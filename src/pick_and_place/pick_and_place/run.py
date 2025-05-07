@@ -9,7 +9,8 @@ from geometry_msgs.msg import Point
 from geometry_msgs.msg import Pose
 from std_msgs.msg import Float64
 from me314_msgs.msg import CommandQueue, CommandWrapper
-
+from sensor_msgs.msg import Image, CameraInfo
+import matplotlib.pyplot as plt
 import time
 
 class run(Node):
@@ -36,7 +37,20 @@ class run(Node):
 
         self.command_queue_pub = self.create_publisher(CommandQueue, '/me314_xarm_command_queue', 10)
 
+        # self.image_sub = self.create_subscription(
+        #     Image,
+        #     '/color/image_raw', 
+        #     self.show_camfeed,
+        #     10
+        # )
+
         self.create_timer(3.0, self.stage_machine)
+
+    # def show_camfeed(self, msg):
+    #     self.get_logger().info("Received RGB image")
+    #     cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
+    #     plt.imshow(cv_image)
+    #     plt.show()
 
     def stage_machine(self):
         self.get_logger().info("Stage: " + str(self.stage))
@@ -46,12 +60,12 @@ class run(Node):
 
             # lift arm until both cube and goal are visible
             if self.cube_position == None or self.goal_position == None:
-                if self.current_arm_pose.position.z > 0.4:
+                if self.current_arm_pose.position.z > 0.5:
                     self.get_logger().info("Max height of arm reached - cube or goal not found")
                     return
                 point = Point()
                 point.x = self.current_arm_pose.position.x
-                point.y = self.current_arm_pose.position.y
+                point.y = self.current_arm_pose.position.y - 0.03
                 point.z = self.current_arm_pose.position.z + 0.03
                 self.publish_pose(point)
                 return
