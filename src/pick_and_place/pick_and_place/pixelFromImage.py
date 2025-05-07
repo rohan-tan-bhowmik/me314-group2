@@ -22,7 +22,7 @@ class ImageToPixel(Node):
         self.bridge = CvBridge()
         self.subscription = self.create_subscription(
             Image,
-            '/color/image_raw', 
+            '/camera/realsense2_camera_node/color/image_raw',  #"/color/image_raw"
             self.findPixel,
             10
         )

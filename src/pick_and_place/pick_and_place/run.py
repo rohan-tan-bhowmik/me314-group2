@@ -60,12 +60,12 @@ class run(Node):
 
             # lift arm until both cube and goal are visible
             if self.cube_position == None or self.goal_position == None:
-                if self.current_arm_pose.position.z > 0.5:
+                if self.current_arm_pose.position.z > 1:
                     self.get_logger().info("Max height of arm reached - cube or goal not found")
                     return
                 point = Point()
                 point.x = self.current_arm_pose.position.x
-                point.y = self.current_arm_pose.position.y - 0.03
+                point.y = self.current_arm_pose.position.y
                 point.z = self.current_arm_pose.position.z + 0.03
                 self.publish_pose(point)
                 return
@@ -75,7 +75,8 @@ class run(Node):
 
         elif self.stage == 1:
             # self.cube_position.z = self.cube_position.z - 0.0233
-            self.cube_position.z = 0.02
+            self.cube_position.z = 0.045 # REAL = Foam + Cardboard
+            # self.goal_position.z = 0.02 # SIM
             self.publish_pose(self.cube_position)
             self.get_logger().info("In position to grab")
             self.stage += 1
@@ -88,7 +89,8 @@ class run(Node):
 
         elif self.stage == 3:
             # self.goal_position.z = self.goal_position.z + 0.03
-            self.goal_position.z = 0.04
+            self.goal_position.z = 0.05 # REAL = Foam + Cardboard
+            # self.goal_position.z = 0.03 # SIM
             self.publish_pose(self.goal_position)
             self.get_logger().info("In position to release")
             self.stage += 1
@@ -100,6 +102,9 @@ class run(Node):
             self.stage += 1
 
         # time.sleep(3)
+        elif self.stage == 5:
+            # TO DO: GO BACK TO ORIGIN
+            self.stage += 1
 
     def arm_pose_callback(self, msg: Pose):
         self.current_arm_pose = msg

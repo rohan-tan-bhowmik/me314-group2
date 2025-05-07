@@ -26,10 +26,10 @@ class PixelToCoordNode(Node):
         self.source_frame = 'camera_color_optical_frame'
         
         # Topics for camera data
-        self.CameraIntrinsicsTopic = "/color/camera_info"
-        self.DepthCameraIntrinsicsTopic = "/aligned_depth_to_color/camera_info"
-        self.CameraTopic = "/color/image_raw"
-        self.DepthCameraTopic = "/aligned_depth_to_color/image_raw"
+        self.CameraIntrinsicsTopic = "/camera/realsense2_camera_node/color/camera_info" #"/color/camera_info"
+        self.DepthCameraIntrinsicsTopic = "/camera/realsense2_camera_node/aligned_depth_to_color/camera_info" #"/aligned_depth_to_color/camera_info"
+        self.CameraTopic = "/camera/realsense2_camera_node/color/image_raw" #"/color/image_raw"
+        self.DepthCameraTopic = "/camera/realsense2_camera_node/aligned_depth_to_color/image_raw" #"/aligned_depth_to_color/image_raw"
         self.RedObjectCenter = "/image_red_center"
         self.GreenObjectCenter = "/image_green_center"
 
