@@ -29,12 +29,13 @@ class ImageToPixel(Node):
         self.pixel_red_pub = self.create_publisher(Point, '/image_red_center', 10)
         self.pixel_green_pub = self.create_publisher(Point, '/image_green_center', 10)
         self.pixel_hole_pub = self.create_publisher(Point, '/image_hole_center', 10)
-        self.pixel_hole_pub = self.create_publisher(Point, '/image_peg_center', 10)
-        self.task = "block" #"peg"
+        self.pixel_peg_pub = self.create_publisher(Point, '/image_peg_center', 10)
+        self.task = "peg" #"block" 
 
     def findPixel(self, msg):
         try:
-            cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
+            cv_image = self.bridge.imgmsg_to_cv2("test_blue.jpg", desired_encoding='bgr8')
+                #msg, desired_encoding='bgr8')
             image_hsv = cv2.cvtColor(cv_image, cv2.COLOR_BGR2HSV)
             
             if self.task == "block" or self.task == "peg":     

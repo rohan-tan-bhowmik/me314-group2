@@ -25,6 +25,11 @@ class run(Node):
         self.cube_initialized = False
         self.goal_initialized = False
 
+        self.hole_position = None
+        self.peg_position = None
+        self.hole_initialized = False
+        self.peg_initialized = False
+
         # Stage 0 = locate red + green
         # Stage 1 = grip red
         # Stage 2 = go to green + release
@@ -34,6 +39,9 @@ class run(Node):
         self.gripper_status_sub = self.create_subscription(Float64, '/me314_xarm_gripper_position', self.gripper_position_callback, 10)
         self.cube_sub = self.create_subscription(Point, '/cube_position', self.cube_pos_callback, 10)
         self.goal_sub = self.create_subscription(Point, '/goal_position', self.goal_pos_callback, 10)
+        
+        self.hole_sub = self.create_subscription(Point, '/hole_position', self.cube_pos_callback, 10)
+        self.peg_sub = self.create_subscription(Point, '/peg_position', self.cube_pos_callback, 10)
 
         self.command_queue_pub = self.create_publisher(CommandQueue, '/me314_xarm_command_queue', 10)
 
@@ -43,7 +51,7 @@ class run(Node):
         #     self.show_camfeed,
         #     10
         # )
-
+        self.task = "peg" #"block"
         self.create_timer(3.0, self.stage_machine)
 
     # def show_camfeed(self, msg):
@@ -57,26 +65,44 @@ class run(Node):
         if self.stage == 0:
             
             # TO DO: Go to home position
-
-            # lift arm until both cube and goal are visible
-            if self.cube_position == None or self.goal_position == None:
-                if self.current_arm_pose.position.z > 0.5:
-                    self.get_logger().info("Max height of arm reached - cube or goal not found")
+            if self.task == "peg":
+                if self.hole_position == None or self.peg_position == None:
+                    if self.current_arm_pose.position.z > 0.5:
+                        self.get_logger().info("Max height of arm reached - cube or goal not found")
+                        return
+                    point = Point()
+                    point.x = self.current_arm_pose.position.x
+                    point.y = self.current_arm_pose.position.y
+                    point.z = self.current_arm_pose.position.z + 0.03
+                    self.publish_pose(point)
                     return
-                point = Point()
-                point.x = self.current_arm_pose.position.x
-                point.y = self.current_arm_pose.position.y - 0.03
-                point.z = self.current_arm_pose.position.z + 0.03
-                self.publish_pose(point)
-                return
-            else:
-                self.get_logger().info("Both cube and goal found")
-                self.stage += 1
+                else:
+                    self.get_logger().info("Both peg and hole found")
+                    self.stage += 1
+            # lift arm until both cube and goal are visible
+            if self.task == "block":
+                if self.cube_position == None or self.goal_position == None:
+                    if self.current_arm_pose.position.z > 0.5:
+                        self.get_logger().info("Max height of arm reached - cube or goal not found")
+                        return
+                    point = Point()
+                    point.x = self.current_arm_pose.position.x
+                    point.y = self.current_arm_pose.position.y
+                    point.z = self.current_arm_pose.position.z + 0.03
+                    self.publish_pose(point)
+                    return
+                else:
+                    self.get_logger().info("Both cube and goal found")
+                    self.stage += 1
 
         elif self.stage == 1:
             # self.cube_position.z = self.cube_position.z - 0.0233
-            self.cube_position.z = 0.02
-            self.publish_pose(self.cube_position)
+            pos = self.cube_position
+            pos.z = 0.06
+            if self.task == "peg":
+                pos = self.peg_position
+                pos.z = 0.08
+            self.publish_pose(pos)
             self.get_logger().info("In position to grab")
             self.stage += 1
 
@@ -88,8 +114,12 @@ class run(Node):
 
         elif self.stage == 3:
             # self.goal_position.z = self.goal_position.z + 0.03
-            self.goal_position.z = 0.04
-            self.publish_pose(self.goal_position)
+            pos = self.goal_position
+            pos.z = 0.04
+            if self.task == "peg":
+                pos = self.hole_position
+                pos.z = 0.05
+            self.publish_pose(pos)
             self.get_logger().info("In position to release")
             self.stage += 1
 
@@ -117,6 +147,20 @@ class run(Node):
         self.goal_position = point
         if (point != None):
             self.goal_initialized = True
+    
+    def hole_pos_callback(self, point: Point):
+        if (self.hole_initialized):
+            return
+        self.hole_position = point
+        if (point != None):
+            self.hole_initialized = True
+
+    def peg_pos_callback(self, point: Point):
+        if (self.peg_initialized):
+            return
+        self.peg_position = point
+        if (point != None):
+            self.peg_initialized = True
             
 
     def gripper_position_callback(self, msg: Float64):
@@ -184,7 +228,7 @@ def main(args=None):
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()
-    cv2.destroyAllWindows()
+    #cv2.destroyAllWindows()
 
 if __name__ == '__main__':
     main()

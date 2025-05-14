@@ -48,6 +48,9 @@ class PixelToCoordNode(Node):
         self.create_subscription(Point, self.RedObjectCenter, lambda msg: self.getPointInBaseFrame(msg, "red"), 10)
         self.create_subscription(Point, self.GreenObjectCenter, lambda msg: self.getPointInBaseFrame(msg, "green"), 10)
 
+        self.create_subscription(Point, self.HoleObjectCenter, lambda msg: self.getPointInBaseFrame(msg, "hole"), 10)
+        self.create_subscription(Point, self.PegObjectCenter, lambda msg: self.getPointInBaseFrame(msg, "peg"), 10)
+
         # Variables for camera data and transforms
         self.cv_Image = None
         self.cv_DepthImage = None
@@ -66,6 +69,9 @@ class PixelToCoordNode(Node):
         #publish object & goal locaftions
         self.publisher_cube = self.create_publisher(Point, 'cube_position', 10)
         self.publisher_goal = self.create_publisher(Point, 'goal_position', 10)
+
+        self.publisher_hole = self.create_publisher(Point, 'hole_position', 10)
+        self.publisher_peg = self.create_publisher(Point, 'peg_position', 10)
 
     def GetTransform(self, target_frame, source_frame, timeout=30.0, debug=False):
         if debug:
@@ -188,6 +194,10 @@ class PixelToCoordNode(Node):
         if (objectType == "red"):
             self.publisher_cube.publish(coord)
         elif (objectType == "green"):
+            self.publisher_goal.publish(coord)
+        elif(objectType == "hole"):
+            self.publisher_goal.publish(coord)
+        elif(objectType == "peg"):
             self.publisher_goal.publish(coord)
         else:
             self.get_logger().info("Invalid object type passed to getPointInBaseFrame")
