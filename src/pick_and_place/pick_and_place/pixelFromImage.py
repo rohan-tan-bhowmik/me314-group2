@@ -22,7 +22,7 @@ class ImageToPixel(Node):
         self.bridge = CvBridge()
         self.subscription = self.create_subscription(
             Image,
-            '/color/image_raw', 
+            '/camera/realsense2_camera_node/color/image_raw', 
             self.findPixel,
             10
         )
@@ -33,9 +33,10 @@ class ImageToPixel(Node):
         self.task = "peg" #"block" 
 
     def findPixel(self, msg):
+        # self.get_logger().info("AAAAAAAAAAAAAAAAAAAAAAAAA")
+
         try:
-            cv_image = self.bridge.imgmsg_to_cv2("test_blue.jpg", desired_encoding='bgr8')
-                #msg, desired_encoding='bgr8')
+            cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
             image_hsv = cv2.cvtColor(cv_image, cv2.COLOR_BGR2HSV)
             
             if self.task == "block" or self.task == "peg":     
@@ -53,8 +54,9 @@ class ImageToPixel(Node):
                 contours_red, _ = cv2.findContours(mask_red,
                                 cv2.RETR_TREE,
                                 cv2.CHAIN_APPROX_SIMPLE)
-
+                
                 # plt.imshow(cv_image)
+                # plt.show()
 
                 if len(contours_red) > 0:
 
@@ -93,22 +95,39 @@ class ImageToPixel(Node):
                     upper_blue = np.array([130, 255, 255])
                     blue_mask = cv2.inRange(image_hsv, lower_blue, upper_blue)
                     contours_blue = cv2.bitwise_and(cv_image, cv_image, mask=blue_mask)
-                    gray = cv2.cvtColor(contours_blue, cv2.COLOR_BG2GRAY)
+                    gray = cv2.cvtColor(contours_blue, cv2.COLOR_BGR2GRAY)
                     gray_blur = cv2.medianBlur(gray, 5)
+                    # cv2.imwrite("temp.png", gray_blur)
+                    # circles = cv2.HoughCircles(
+                    #     gray_blur,
+                    #     cv2.HOUGH_GRADIENT,
+                    #     dp=1.2,
+                    #     minDist=1
+                    # )
                     circles = cv2.HoughCircles(
                         gray_blur,
                         cv2.HOUGH_GRADIENT,
                         dp=1.2,
-                        minDist=cv_image.shape[0]
+                        minDist=20,
+                        param1=100,   # Canny edge detector threshold
+                        param2=30,    # Accumulator threshold (smaller -> more false positives)
+                        minRadius=10,
+                        maxRadius=100
                     )
-                    #self.get_logger().info(circles)
                     centers = []
+
+
                     if circles is not None:
+                        # self.get_logger().info("YEAHJ!!!!!")
                         for x, y, r in circles[0]:
                             centers.append((x, y, r))
-                        self.pixel_hole_pub.publish(Point(centers[0][0], centers[0][1]))
+                        pt = Point()
+                        pt.x = float(centers[0][0])
+                        pt.y = float(centers[0][1])
+                        self.pixel_hole_pub.publish(pt)
                 
-                
+                    # self.get_logger().info(f"yippee: {centers}m {cv_image.shape[0]}")
+                    # self.get_logger().info(f"yoohoo: {circles}")
                 
                 
                 # plt.title("Color Camera View")

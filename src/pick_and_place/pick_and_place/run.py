@@ -30,6 +30,8 @@ class run(Node):
         self.hole_initialized = False
         self.peg_initialized = False
 
+        self.save_pt = Point()
+
         # Stage 0 = locate red + green
         # Stage 1 = grip red
         # Stage 2 = go to green + release
@@ -40,8 +42,8 @@ class run(Node):
         self.cube_sub = self.create_subscription(Point, '/cube_position', self.cube_pos_callback, 10)
         self.goal_sub = self.create_subscription(Point, '/goal_position', self.goal_pos_callback, 10)
         
-        self.hole_sub = self.create_subscription(Point, '/hole_position', self.cube_pos_callback, 10)
-        self.peg_sub = self.create_subscription(Point, '/peg_position', self.cube_pos_callback, 10)
+        self.hole_sub = self.create_subscription(Point, '/hole_position', self.hole_pos_callback, 10)
+        self.peg_sub = self.create_subscription(Point, '/peg_position', self.peg_pos_callback, 10)
 
         self.command_queue_pub = self.create_publisher(CommandQueue, '/me314_xarm_command_queue', 10)
 
@@ -66,14 +68,14 @@ class run(Node):
             
             # TO DO: Go to home position
             if self.task == "peg":
-                if self.hole_position == None or self.peg_position == None:
+                if self.hole_position == None or self.cube_position == None:
                     if self.current_arm_pose.position.z > 0.5:
                         self.get_logger().info("Max height of arm reached - cube or goal not found")
                         return
                     point = Point()
                     point.x = self.current_arm_pose.position.x
                     point.y = self.current_arm_pose.position.y
-                    point.z = self.current_arm_pose.position.z + 0.03
+                    point.z = self.current_arm_pose.position.z + 0.05
                     self.publish_pose(point)
                     return
                 else:
@@ -100,26 +102,45 @@ class run(Node):
             pos = self.cube_position
             pos.z = 0.06
             if self.task == "peg":
-                pos = self.peg_position
-                pos.z = 0.08
+                pos = self.cube_position
+                pos.x += 0.015
+                pos.z = 0.1
             self.publish_pose(pos)
             self.get_logger().info("In position to grab")
             self.stage += 1
 
         elif self.stage == 2:
             # TO DO: Grab Cube
-            self.publish_gripper_position(0.75)
+            self.publish_gripper_position(0.49 if self.task == "peg" else 0.75)
             self.get_logger().info("Grabbing cube")
             self.stage += 1
 
         elif self.stage == 3:
             # self.goal_position.z = self.goal_position.z + 0.03
-            pos = self.goal_position
-            pos.z = 0.04
+            point = Point()
+            point.x = self.current_arm_pose.position.x
+            point.y = self.current_arm_pose.position.y
+            point.z = self.current_arm_pose.position.z + 0.11
+            self.publish_pose(point)
+
+            pos = ""
             if self.task == "peg":
+
+
                 pos = self.hole_position
-                pos.z = 0.05
-            self.publish_pose(pos)
+                pos.y -= 0.005
+                pos.z = self.current_arm_pose.position.z
+                self.publish_pose(pos)
+                time.sleep(0.1)
+
+                pos = self.hole_position
+                pos.z = 0.12
+
+                self.publish_pose(pos)
+            else:
+                pos = self.goal_position
+                pos.z = self.current_arm_pose.position.z
+                self.publish_pose(pos)
             self.get_logger().info("In position to release")
             self.stage += 1
 

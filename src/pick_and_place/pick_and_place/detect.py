@@ -26,12 +26,16 @@ class PixelToCoordNode(Node):
         self.source_frame = 'camera_color_optical_frame'
         
         # Topics for camera data
-        self.CameraIntrinsicsTopic = "/color/camera_info"
-        self.DepthCameraIntrinsicsTopic = "/aligned_depth_to_color/camera_info"
-        self.CameraTopic = "/color/image_raw"
-        self.DepthCameraTopic = "/aligned_depth_to_color/image_raw"
+        self.CameraIntrinsicsTopic = "/camera/realsense2_camera_node/color/camera_info" #"/color/camera_info"
+        self.DepthCameraIntrinsicsTopic = "/camera/realsense2_camera_node/aligned_depth_to_color/camera_info" #"/aligned_depth_to_color/camera_info"
+        self.CameraTopic = "/camera/realsense2_camera_node/color/image_raw" #"/color/image_raw"
+        self.DepthCameraTopic = "/camera/realsense2_camera_node/aligned_depth_to_color/image_raw" #"/aligned_depth_to_color/image_raw"
+
         self.RedObjectCenter = "/image_red_center"
         self.GreenObjectCenter = "/image_green_center"
+        self.HoleObjectCenter = "/image_hole_center"
+        self.PegObjectCenter = "/image_peg_center"
+
 
         # CV Bridge Initialization
         self.bridge = CvBridge()
@@ -192,17 +196,20 @@ class PixelToCoordNode(Node):
         coord.y = point_base_frame[:3][1]
         coord.z = point_base_frame[:3][2]
         if (objectType == "red"):
+            self.get_logger().info("RED@!!!!!!@!")
             self.publisher_cube.publish(coord)
         elif (objectType == "green"):
+            self.get_logger().info("GREEN@!!!!!!@!")
             self.publisher_goal.publish(coord)
         elif(objectType == "hole"):
-            self.publisher_goal.publish(coord)
+            self.get_logger().info("HOLE@!!!!!!@!")
+            self.publisher_hole.publish(coord)
         elif(objectType == "peg"):
-            self.publisher_goal.publish(coord)
+            self.get_logger().info("PEG@!!!!!!@!")
+            self.publisher_peg.publish(coord)
         else:
             self.get_logger().info("Invalid object type passed to getPointInBaseFrame")
         
-        self.get_logger().info("Published Coords")
         return coord  # Return only the x, y, z coordinates
 
 def main():
