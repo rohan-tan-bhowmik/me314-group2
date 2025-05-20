@@ -25,7 +25,7 @@ ament_cmake_environment_hooks/
 
 # === ROS 2 setup/overlay junk ===
 local_setup.*
-setup.*
+# setup.*
 _env.sh
 COLCON_IGNORE
 
