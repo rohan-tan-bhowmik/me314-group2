@@ -5,7 +5,7 @@ def generate_launch_description():
     return LaunchDescription([
         Node(
             package='dollar_bill',
-            executable='posFromPixel',
+            executable='pos_from_pixel',
             name='pos_from_pixel'
         ),
         Node(
