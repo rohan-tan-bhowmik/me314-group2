@@ -8,10 +8,12 @@ from rclpy.node import Node
 from geometry_msgs.msg import Point
 from geometry_msgs.msg import Pose
 from std_msgs.msg import Float64
+from std_msgs.msg import Bool
 from me314_msgs.msg import CommandQueue, CommandWrapper
 from sensor_msgs.msg import Image, CameraInfo
 import matplotlib.pyplot as plt
 import time
+from scipy.spatial.transform import Rotation
 
 class run(Node):
     def __init__(self):
@@ -34,7 +36,7 @@ class run(Node):
         self.gripper_status_sub = self.create_subscription(Float64, '/me314_xarm_gripper_position', self.gripper_position_callback, 10)
         self.dollar_sub = self.create_subscription(Point, '/dollar_position', self.dollar_pos_callback, 10)
         self.goal_sub = self.create_subscription(Point, '/goal_position', self.goal_pos_callback, 10)
-        self.collision_sub = self.create_subscription(bool, '/me314_xarm_collision', self.collision_callback, 1)
+        self.collision_sub = self.create_subscription(Bool, '/me314_xarm_collision', self.collision_callback, 1)
         self.command_queue_pub = self.create_publisher(CommandQueue, '/me314_xarm_command_queue', 10)
 
         # self.image_sub = self.create_subscription(
@@ -72,46 +74,56 @@ class run(Node):
 
         elif self.stage == 1:
             # self.cube_position.z = self.cube_position.z - 0.0233
-            self.publish_gripper_position(0.0)
+            #self.publish_gripper_position(0.0)
+            self.publish_gripper_position(1.0)
             pos = self.dollar_position
-            pos.z = 0.03
+            pos.z = 0.0342
             self.publish_pose(pos)
-            while(self.collided == False):
-                point = Point()
-                point.x = self.current_arm_pose.position.x
-                point.y = self.current_arm_pose.position.y
-                point.z = self.current_arm_pose.position.z - 0.005
+            #while(self.collided == False):
+                #point = Point()
+                #point.x = self.current_arm_pose.position.x
+                #oint.y = self.current_arm_pose.position.y
+                #point.z = self.current_arm_pose.position.z - 0.005
             self.get_logger().info("In position to grab")
             self.stage += 1
 
         elif self.stage == 2:
             # TO DO: Grab Cube
-            while(rclpy.ok() and self.current_gripper_position < 0.98):
-                if(self.collided):
-                    point = Point()
-                    point.x = self.current_arm_pose.position.x
-                    point.y = self.current_arm_pose.position.y
-                    point.z = self.current_arm_pose.position.z + 0.002
-                self.publish_gripper_position(self.current_gripper_position + 0.01)
+            #while(rclpy.ok() and self.current_gripper_position < 0.98):
+                #if(self.collided):
+                   # point = Point()
+                   # point.x = self.current_arm_pose.position.x
+                   # point.y = self.current_arm_pose.position.y
+                   # point.z = self.current_arm_pose.position.z + 0.002
+            #self.publish_gripper_position(1.0)
+           #self.publish_gripper_position(0.5)
+            #self.publish_gripper_position(0.6)
+            #self.publish_gripper_position(0.7)
+            #self.publish_gripper_position(0.71)
+            ##point.x = self.current_arm_pose.position.x
+            #point.y = self.current_arm_pose.position.y
+            #point.z = self.current_arm_pose.position.z + 0.03
+            #self.publish_pose(point)
+            #self.publish_gripper_position(0.99)
 
             self.get_logger().info("Grabbing dollar bill")
             self.stage += 1
 
         elif self.stage == 3:
             # self.goal_position.z = self.goal_position.z + 0.03
-            point = Point()
-            point.x = self.current_arm_pose.position.x
-            point.y = self.current_arm_pose.position.y
-            point.z = self.current_arm_pose.position.z + 0.05
-            self.publish_pose(point)
             pos = self.goal_position
-            pos.z = 0.05
+            pos.z = 0.04
             self.publish_pose(pos)
             self.get_logger().info("In position to release")
             self.stage += 1
 
         elif self.stage == 4:
             self.publish_gripper_position(0.0)
+            point = Point()
+            point.x = self.current_arm_pose.position.x
+            point.y = self.current_arm_pose.position.y
+            point.z = self.current_arm_pose.position.z + 0.05
+            self.publish_pose(point)
             self.get_logger().info("Releasing dollar bill")
             self.stage += 1
 
@@ -140,6 +152,13 @@ class run(Node):
     def gripper_position_callback(self, msg: Float64):
         self.current_gripper_position = msg.data
 
+    def euler_to_quaternion(self, roll, pitch, yaw):
+        # Assuming degrees for the xArm, as in your original code
+        rot = Rotation.from_euler('xyz', [roll, pitch, yaw], degrees=False)
+        quat = rot.as_quat()
+        # print(quat)
+        return quat
+    
     def publish_pose(self, point):
         """
         Publishes a pose command to the command queue using an array format.
@@ -154,13 +173,15 @@ class run(Node):
         wrapper.command_type = "pose"
         
         # Populate the pose_command with the values from the pose_array
+        quat = self.euler_to_quaternion(179.1, 0.0, -89.65)
+        self.get_logger().info(f"quat[0]: {quat[0]}, quat[1]: {quat[1]}, quat[2]: {quat[2]}, quat[3]: {quat[3]}")
         wrapper.pose_command.x = point.x
         wrapper.pose_command.y = point.y
         wrapper.pose_command.z = point.z
-        wrapper.pose_command.qx = 1.0
-        wrapper.pose_command.qy = 0.0
-        wrapper.pose_command.qz = 0.0
-        wrapper.pose_command.qw = 0.0
+        wrapper.pose_command.qx = quat[0]
+        wrapper.pose_command.qy = quat[1]
+        wrapper.pose_command.qz = quat[2]
+        wrapper.pose_command.qw = quat[3]
         
         # Add the command to the queue and publish
         queue_msg.commands.append(wrapper)
@@ -195,6 +216,8 @@ class run(Node):
 
     # def point_reached():
     #     return
+    
+    
     
 def main(args=None):
     rclpy.init(args=args)

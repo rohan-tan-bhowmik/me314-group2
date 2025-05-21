@@ -8,6 +8,7 @@ from rclpy.node import Node
 from geometry_msgs.msg import Point
 from geometry_msgs.msg import Pose
 from std_msgs.msg import Float64
+from std_msgs.msg import Bool
 from me314_msgs.msg import CommandQueue, CommandWrapper
 from sensor_msgs.msg import Image, CameraInfo
 import matplotlib.pyplot as plt
@@ -34,7 +35,7 @@ class run(Node):
         self.gripper_status_sub = self.create_subscription(Float64, '/me314_xarm_gripper_position', self.gripper_position_callback, 10)
         self.coin_sub = self.create_subscription(Point, '/coin_position', self.coin_pos_callback, 10)
         self.goal_sub = self.create_subscription(Point, '/goal_position', self.goal_pos_callback, 10)
-        self.collision_sub = self.create_subscription(bool, '/me314_xarm_collision', self.collision_callback, 1)
+        self.collision_sub = self.create_subscription(Bool, '/me314_xarm_collision', self.collision_callback, 1)
         self.command_queue_pub = self.create_publisher(CommandQueue, '/me314_xarm_command_queue', 10)
 
         # self.image_sub = self.create_subscription(
@@ -73,25 +74,28 @@ class run(Node):
         elif self.stage == 1:
             # self.cube_position.z = self.cube_position.z - 0.0233
             pos = self.coin_position
-            pos.z = 0.03
+            pos.z = 0.0351
             self.publish_pose(pos)
-            while(self.collided == False):
-                point = Point()
-                point.x = self.current_arm_pose.position.x
-                point.y = self.current_arm_pose.position.y
-                point.z = self.current_arm_pose.position.z - 0.005
+            #while(self.collided == False):
+            #    point = Point()
+            #    point.x = self.current_arm_pose.position.x
+             #   point.y = self.current_arm_pose.position.y
+            #    point.z = self.current_arm_pose.position.z - 0.005
             self.get_logger().info("In position to grab")
             self.stage += 1
 
         elif self.stage == 2:
             # TO DO: Grab Cube
-            while(rclpy.ok() and self.current_gripper_position < 0.4):
-                if(self.collided):
-                    point = Point()
-                    point.x = self.current_arm_pose.position.x
-                    point.y = self.current_arm_pose.position.y
-                    point.z = self.current_arm_pose.position.z + 0.002
-                self.publish_gripper_position(self.current_gripper_position + 0.01)
+            #while(rclpy.ok() and self.current_gripper_position < 0.4):
+                #if(self.collided):
+                    #point = Point()
+                    #point.x = self.current_arm_pose.position.x
+                    #point.y = self.current_arm_pose.position.y
+                    #point.z = self.current_arm_pose.position.z + 0.002
+            self.publish_gripper_position(0.5)
+            self.publish_gripper_position(0.6)
+            self.publish_gripper_position(0.7)
+            self.publish_gripper_position(0.72)
 
             self.get_logger().info("Grabbing coin")
             self.stage += 1

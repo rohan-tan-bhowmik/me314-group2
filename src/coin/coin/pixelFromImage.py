@@ -34,6 +34,29 @@ class ImageToPixel(Node):
 
         try:
             cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
+            image_hsv = cv2.cvtColor(cv_image, cv2.COLOR_BGR2HSV)
+            
+
+            lower_green = np.array([35, 100, 100])
+            upper_green = np.array([85, 255, 255])
+
+            mask_green = cv2.inRange(image_hsv, lower_green, upper_green)
+
+            #find green square
+            contours_green, _ = cv2.findContours(mask_green,
+                                cv2.RETR_TREE,
+                                cv2.CHAIN_APPROX_SIMPLE)
+            
+            if len(contours_green) > 0:
+                green_area = max(contours_green, key=cv2.contourArea)
+                x, y, w, h = cv2.boundingRect(green_area)
+                cv2.rectangle(cv_image,(x, y),(x+w, y+h),(0, 255, 255), 2)
+                pixel = Point()
+                pixel.x = float(x + w / 2.0)
+                pixel.y = float(y + h / 2.0)
+
+                self.pixel_green_pub.publish(pixel)
+
             image_gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
             
             circles = cv2.HoughCircles(

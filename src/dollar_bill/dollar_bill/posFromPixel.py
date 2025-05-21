@@ -187,10 +187,10 @@ class PixelToCoordNode(Node):
         coord.y = point_base_frame[:3][1]
         coord.z = point_base_frame[:3][2]
         if (objectType == "dollar"):
-            self.get_logger().info("DOLLAR@!!!!!!@!")
+            #self.get_logger().info("DOLLAR@!!!!!!@!")
             self.publisher_dollar.publish(coord)
         elif (objectType == "green"):
-            self.get_logger().info("GREEN@!!!!!!@!")
+            #self.get_logger().info("GREEN@!!!!!!@!")
             self.publisher_goal.publish(coord)
         else:
             self.get_logger().info("Invalid object type passed to getPointInBaseFrame")

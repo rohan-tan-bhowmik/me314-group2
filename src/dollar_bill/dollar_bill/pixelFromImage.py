@@ -37,8 +37,8 @@ class ImageToPixel(Node):
             image_hsv = cv2.cvtColor(cv_image, cv2.COLOR_BGR2HSV)
             
 
-            lower_green = np.array([36, 130, 130])
-            upper_green = np.array([86, 255, 255])
+            lower_green = np.array([35, 100, 100])
+            upper_green = np.array([85, 255, 255])
 
             mask_green = cv2.inRange (image_hsv, lower_green, upper_green)
 
