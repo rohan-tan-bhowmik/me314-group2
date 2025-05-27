@@ -74,10 +74,11 @@ class run(Node):
 
         elif self.stage == 1:
             # self.cube_position.z = self.cube_position.z - 0.0233
-            #self.publish_gripper_position(0.0)
-            self.publish_gripper_position(1.0)
+            self.publish_gripper_position(0.0)
+            #self.publish_gripper_position(1.0)
             pos = self.dollar_position
-            pos.z = 0.0342
+            pos.z = 0.0322
+            pos.y -= 0.08
             self.publish_pose(pos)
             #while(self.collided == False):
                 #point = Point()
@@ -105,27 +106,37 @@ class run(Node):
             #point.z = self.current_arm_pose.position.z + 0.03
             #self.publish_pose(point)
             #self.publish_gripper_position(0.99)
-
+            initial_grip = 0.24
+            self.publish_gripper_position(initial_grip)
+            for i in range(20):
+                self.publish_gripper_position(initial_grip + i * (1-initial_grip)/20)
+                pos = self.dollar_position
+                pos.z = 0.0345 + 0.001 * i
+                self.publish_pose(pos)
+                time.sleep(0.5)
+           
             self.get_logger().info("Grabbing dollar bill")
             self.stage += 1
 
         elif self.stage == 3:
             # self.goal_position.z = self.goal_position.z + 0.03
             pos = self.goal_position
-            pos.z = 0.1
+            pos.z = 0.2
             self.publish_pose(pos)
             self.get_logger().info("In position to release")
             self.stage += 1
 
         elif self.stage == 4:
             self.publish_gripper_position(0.0)
-            point = Point()
-            point.x = self.current_arm_pose.position.x
-            point.y = self.current_arm_pose.position.y
-            point.z = self.current_arm_pose.position.z + 0.05
-            self.publish_pose(point)
-            self.publish_gripper_position(1.0)
-            self.publish_gripper_position(0.0)
+            #point = Point()
+            #point.x = self.current_arm_pose.position.x
+            #point.y = self.current_arm_pose.position.y
+            #point.z = self.current_arm_pose.position.z + 0.05
+            #self.publish_pose(point)
+           # self.publish_gripper_position(1.0)
+            #self.publish_gripper_position(0.0)
+            #self.publish_gripper_position(1.0)
+           # self.publish_gripper_position(0.0)
             self.get_logger().info("Releasing dollar bill")
             self.stage += 1
 
@@ -175,7 +186,7 @@ class run(Node):
         wrapper.command_type = "pose"
         
         # Populate the pose_command with the values from the pose_array
-        quat = self.euler_to_quaternion(179.1, 0.0, -89.65)
+        quat = self.euler_to_quaternion(179.1, 0.0, -89.6)
         self.get_logger().info(f"quat[0]: {quat[0]}, quat[1]: {quat[1]}, quat[2]: {quat[2]}, quat[3]: {quat[3]}")
         wrapper.pose_command.x = point.x
         wrapper.pose_command.y = point.y
