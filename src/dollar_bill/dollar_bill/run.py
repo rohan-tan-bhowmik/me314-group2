@@ -112,7 +112,7 @@ class run(Node):
         elif self.stage == 3:
             # self.goal_position.z = self.goal_position.z + 0.03
             pos = self.goal_position
-            pos.z = 0.04
+            pos.z = 0.1
             self.publish_pose(pos)
             self.get_logger().info("In position to release")
             self.stage += 1
@@ -124,6 +124,8 @@ class run(Node):
             point.y = self.current_arm_pose.position.y
             point.z = self.current_arm_pose.position.z + 0.05
             self.publish_pose(point)
+            self.publish_gripper_position(1.0)
+            self.publish_gripper_position(0.0)
             self.get_logger().info("Releasing dollar bill")
             self.stage += 1
 
