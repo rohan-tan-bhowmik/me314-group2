@@ -64,8 +64,9 @@ class ImageToPixel(Node):
             img_dollar = cv2.bitwise_and(cv_image, cv_image, mask=mask_dollar)
             gray_dollar = cv2.cvtColor(img_dollar, cv2.COLOR_BGR2GRAY)
             edges_dollar = cv2.Canny(gray_dollar, 50, 150)
-
-            contours_dollar, _ = cv2.findContours(edges_dollar,
+            kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (15,15))
+            mask_bill = cv2.morphologyEx(edges_dollar, cv2.MORPH_CLOSE, kernel)
+            contours_dollar, _ = cv2.findContours(mask_bill,
                                                 cv2.RETR_EXTERNAL,
                                                 cv2.CHAIN_APPROX_SIMPLE)
             if len(contours_dollar) > 0:
